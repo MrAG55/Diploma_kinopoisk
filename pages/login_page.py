@@ -1,9 +1,13 @@
 
 
+import os
+import json
+import allure
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import allure
+
+COOKIE_PATH = os.path.join(os.path.dirname(__file__), "../utils/cookies.json")
 
 
 class LoginPage:
@@ -59,6 +63,12 @@ class LoginPage:
         ))
         self.driver.execute_script("arguments[0].click();", continue_button)
 
+    @allure.step("Сохраняем куки в файл после входа")
+    def save_cookies(self):
+        cookies = self.driver.get_cookies()
+        with open(COOKIE_PATH, "w", encoding="utf-8") as f:
+            json.dump(cookies, f, indent=2)
+
     @allure.step("Проходим авторизацию и возвращаемся на Кинопоиск")
     def login(self, email, password):
         self.click_login_button()
@@ -68,3 +78,5 @@ class LoginPage:
 
         self.wait.until(EC.title_contains("Авторизация"))
         self.driver.get("https://www.kinopoisk.ru/")
+
+        self.save_cookies()
