@@ -1,23 +1,19 @@
-
-
 import allure
 from pages.login_page import LoginPage
 from pages.search_page import SearchPage
 from pages.card_page import CardPage
-from data.test_data import TEST_USER_EMAIL, TEST_USER_PASSWORD
+
+# UI-Тест 1: проверяем, что с куками залогинены
 
 
-# UI-Тест 1: Авторизация + проверка заголовка
-
-@allure.title("Авторизация пользователя и проверка заголовка")
-def test_login_valid_user(driver):
+@allure.title("Авторизация через куки и проверка, что пользователь в системе")
+def test_login_via_cookies(driver):
     login = LoginPage(driver)
-    with allure.step("Открываем главную страницу"):
+    with allure.step("Открываем главную страницу и подгружаем куки"):
         login.open()
-    with allure.step("Выполняем полный вход"):
-        login.login(TEST_USER_EMAIL, TEST_USER_PASSWORD)
-    with allure.step("Убедиться, что на странице есть 'Кинопоиск'"):
-        assert "Кинопоиск" in driver.title
+        login.apply_cookies()
+    with allure.step("Убедиться, что пользователь действительно залогинен"):
+        assert login.is_logged_in()
 
 
 # UI-Тест 2: Поиск фильма 'Петля времени'
@@ -27,9 +23,9 @@ def test_search_film_logged_in(driver):
     login = LoginPage(driver)
     search = SearchPage(driver)
 
-    with allure.step("Логинимся"):
+    with allure.step("Открываем главную страницу и применяем куки"):
         login.open()
-        login.login(TEST_USER_EMAIL, TEST_USER_PASSWORD)
+        login.apply_cookies()
 
     with allure.step("Ищем фильм 'Петля времени'"):
         search.search_film("Петля времени")
@@ -46,9 +42,11 @@ def test_production_year_visible(driver):
     search = SearchPage(driver)
     card = CardPage(driver)
 
-    with allure.step("Логинимся и открываем карточку фильма"):
+    with allure.step("Открываем главную страницу и применяем куки"):
         login.open()
-        login.login(TEST_USER_EMAIL, TEST_USER_PASSWORD)
+        login.apply_cookies()
+
+    with allure.step("Открываем карточку 'Петля времени'"):
         search.search_film("Петля времени")
         search.click_film_by_title("Петля времени")
 
@@ -64,13 +62,15 @@ def test_open_cast_page_logged_in(driver):
     search = SearchPage(driver)
     card = CardPage(driver)
 
-    with allure.step("Логинимся и открываем карточку"):
+    with allure.step("Открываем главную страницу и применяем куки"):
         login.open()
-        login.login(TEST_USER_EMAIL, TEST_USER_PASSWORD)
+        login.apply_cookies()
+
+    with allure.step("Открываем карточку фильма"):
         search.search_film("Петля времени")
         search.click_film_by_title("Петля времени")
 
-    with allure.step("Переходим в актёры"):
+    with allure.step("Переходим в раздел 'В главных ролях'"):
         card.click_cast()
 
     with allure.step("Проверяем URL содержит '/cast/'"):
@@ -85,9 +85,11 @@ def test_favorite_button_logged_in(driver):
     search = SearchPage(driver)
     card = CardPage(driver)
 
-    with allure.step("Логинимся и открываем карточку"):
+    with allure.step("Открываем главную страницу и применяем куки"):
         login.open()
-        login.login(TEST_USER_EMAIL, TEST_USER_PASSWORD)
+        login.apply_cookies()
+
+    with allure.step("Открываем карточку фильма"):
         search.search_film("Петля времени")
         search.click_film_by_title("Петля времени")
 

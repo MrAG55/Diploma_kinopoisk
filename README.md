@@ -36,3 +36,11 @@ pytest tests/test_api.py
 4. Сформировать Allure-отчёт:
 pytest --alluredir=allure-results
 allure serve allure-results
+
+## Связанный проект
+
+-  Финальный проект по ручному тестированию Кинопоиска:  
+  [https://mrag.yonote.ru/doc/finalnyj-proekt-po-ruchnomu-testirovaniyu-kinopoisk-DD4m7RFw3a](https://mrag.yonote.ru/doc/finalnyj-proekt-po-ruchnomu-testirovaniyu-kinopoisk-DD4m7RFw3a)
+
+- Автоматизация тестирования на основе этой работы:
+  [GitHub: MrAG55/Diploma_kinopoisk](https://github.com/MrAG55/Diploma_kinopoisk)

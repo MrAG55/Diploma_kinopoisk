@@ -6,12 +6,6 @@ from selenium import webdriver
 COOKIE_PATH = os.path.join(os.path.dirname(__file__), "utils/cookies.json")
 
 
-@pytest.fixture(scope="session")
-def base_url():
-    from config.settings import BASE_URL
-    return BASE_URL
-
-
 @pytest.fixture(scope="function")
 def driver():
     options = webdriver.ChromeOptions()
@@ -34,10 +28,3 @@ def driver():
 
     yield driver
     driver.quit()
-
-
-@pytest.fixture(scope="session")
-def api_headers():
-    return {
-        "Content-Type": "application/json"
-    }

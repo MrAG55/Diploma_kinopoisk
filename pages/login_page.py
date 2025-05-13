@@ -1,5 +1,3 @@
-
-
 import os
 import json
 import allure
@@ -20,63 +18,73 @@ class LoginPage:
     def open(self):
         self.driver.get(self.url)
 
+    @allure.step("Проверяем, что пользователь уже залогинен по наличию cookie")
+    def is_logged_in(self) -> bool:
+        return any(c.get("name") == "desktop_session_key"
+                   for c in self.driver.get_cookies())
+
+    @allure.step("Применяем сохранённые куки для авторизации")
+    def apply_cookies(self):
+        if not os.path.exists(COOKIE_PATH):
+            raise RuntimeError(f"Файл с куки не найден: {COOKIE_PATH}")
+        self.driver.get(self.url)
+        with open(COOKIE_PATH, "r", encoding="utf-8") as f:
+            cookies = json.load(f)
+        for cookie in cookies:
+            cookie.pop("sameSite", None)
+            cookie.pop("domain", None)
+            try:
+                self.driver.add_cookie(cookie)
+            except Exception:
+                pass
+        self.driver.refresh()
+
     @allure.step("Нажимаем 'Войти'")
     def click_login_button(self):
-        login_button = self.wait.until(EC.element_to_be_clickable(
+        btn = self.wait.until(EC.element_to_be_clickable(
             (By.XPATH, "//button[contains(text(),'Войти')]")
         ))
-        login_button.click()
+        btn.click()
 
-    @allure.step("Нажимаем 'Ещё' и 'Войти по логину'")
+    @allure.step("Нажимаем 'Ещё' → 'Войти по логину'")
     def select_login_by_email(self):
-        more_button = self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//span[text()='Ещё']")
-        ))
-        self.driver.execute_script("arguments[0].click();", more_button)
-
-        login_option = self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(text(),'Войти по')]")
-        ))
-        login_option.click()
+        more = self.wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//span[text()='Ещё']")))
+        self.driver.execute_script("arguments[0].click();", more)
+        by_email = self.wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//button[contains(text(),'Войти по')]")))
+        by_email.click()
 
     @allure.step("Вводим логин и нажимаем 'Войти'")
     def enter_email(self, email):
-        email_input = self.wait.until(EC.presence_of_element_located(
-            (By.ID, "passp-field-login")
-        ))
-        email_input.send_keys(email)
-
-        login_button = self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//span[text()='Войти']")
-        ))
-        self.driver.execute_script("arguments[0].click();", login_button)
+        inp = self.wait.until(EC.presence_of_element_located(
+            (By.ID, "passp-field-login")))
+        inp.send_keys(email)
+        ok = self.wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//span[text()='Войти']")))
+        self.driver.execute_script("arguments[0].click();", ok)
 
     @allure.step("Вводим пароль и нажимаем 'Продолжить'")
     def enter_password(self, password):
-        password_input = self.wait.until(EC.presence_of_element_located(
-            (By.ID, "passp-field-passwd")
-        ))
-        password_input.send_keys(password)
+        inp = self.wait.until(EC.presence_of_element_located(
+            (By.ID, "passp-field-passwd")))
+        inp.send_keys(password)
+        cont = self.wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//span[text()='Продолжить']")))
+        self.driver.execute_script("arguments[0].click();", cont)
 
-        continue_button = self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//span[text()='Продолжить']")
-        ))
-        self.driver.execute_script("arguments[0].click();", continue_button)
-
-    @allure.step("Сохраняем куки в файл после входа")
+    @allure.step("Сохраняем куки в файл")
     def save_cookies(self):
         cookies = self.driver.get_cookies()
         with open(COOKIE_PATH, "w", encoding="utf-8") as f:
             json.dump(cookies, f, indent=2)
 
-    @allure.step("Проходим авторизацию и возвращаемся на Кинопоиск")
-    def login(self, email, password):
+    @allure.step("Ручная авторизация и сохранение куки")
+    def login_and_save_cookies(self, email, password):
+        self.open()
         self.click_login_button()
         self.select_login_by_email()
         self.enter_email(email)
         self.enter_password(password)
-
-        self.wait.until(EC.title_contains("Авторизация"))
-        self.driver.get("https://www.kinopoisk.ru/")
-
+        self.wait.until(EC.title_contains("Кинопоиск"))
         self.save_cookies()
